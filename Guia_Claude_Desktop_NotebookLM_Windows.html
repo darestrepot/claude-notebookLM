@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conectar Claude Desktop con NotebookLM — Windows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --eafit:#003DA5;
+    --eafit-deep:#002A6E;
+    --eafit-mid:#2E6CA4;
+    --eafit-tint:#E8F0FA;
+    --eafit-line:#CBDCEF;
+    --ink:#13202E;
+    --ink-soft:#4A5A6B;
+    --paper:#FBFCFE;
+    --card:#FFFFFF;
+    --term-bg:#0A1A30;
+    --term-prompt:#6FA8E6;
+    --term-text:#E6EEF8;
+    --warn-bg:#FFF6E9;
+    --warn-line:#E9C46A;
+    --warn-ink:#7A5A12;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+
+  /* Header */
+  header{
+    background:linear-gradient(160deg,var(--eafit-deep),var(--eafit) 70%);
+    color:#fff;
+    padding:64px 0 56px;
+  }
+  .bridge{
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;letter-spacing:.04em;
+    color:#BFD6F2;margin-bottom:28px;flex-wrap:wrap;
+  }
+  .bridge .node{
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:6px;padding:5px 11px;color:#fff;white-space:nowrap;
+  }
+  .bridge .link{flex:1;min-width:30px;height:1px;background:rgba(255,255,255,.35);position:relative;}
+  .bridge .link::after{content:"";position:absolute;right:0;top:-3px;width:7px;height:7px;border-radius:50%;background:#fff;}
+  header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(2rem,5.5vw,3.1rem);
+    line-height:1.08;
+    margin:0 0 16px;
+    letter-spacing:-.01em;
+  }
+  header p{
+    font-size:1.06rem;color:#D6E4F6;max-width:56ch;margin:0;
+  }
+
+  /* Generic section */
+  main{padding:8px 0 72px;}
+  .lead{
+    margin:44px 0 8px;
+    font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--eafit-mid);
+    font-family:'JetBrains Mono',monospace;
+  }
+
+  /* Callout */
+  .callout{
+    border:1px solid var(--warn-line);
+    background:var(--warn-bg);
+    color:var(--warn-ink);
+    border-radius:12px;
+    padding:20px 22px;
+    margin:24px 0;
+  }
+  .callout strong{color:var(--warn-ink);}
+  .callout ul{margin:10px 0 0;padding-left:20px;}
+  .callout li{margin:6px 0;}
+
+  /* Steps */
+  .step{
+    position:relative;
+    border:1px solid var(--eafit-line);
+    background:var(--card);
+    border-radius:16px;
+    padding:26px 28px 28px;
+    margin:20px 0;
+  }
+  .step-head{display:flex;align-items:baseline;gap:16px;margin-bottom:6px;}
+  .step-num{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:2.6rem;
+    line-height:1;
+    color:var(--eafit);
+    flex-shrink:0;
+    min-width:1.4em;
+  }
+  .step-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.4rem;
+    line-height:1.2;
+    margin:0;
+    padding-top:.35em;
+  }
+  .step p{margin:.6em 0;color:var(--ink-soft);}
+  .step p.body-ink{color:var(--ink);}
+  .step ul{margin:.6em 0;padding-left:20px;color:var(--ink-soft);}
+  .step li{margin:7px 0;}
+  code.inline{
+    font-family:'JetBrains Mono',monospace;
+    font-size:.86em;
+    background:var(--eafit-tint);
+    color:var(--eafit-deep);
+    padding:1px 6px;border-radius:5px;
+    border:1px solid var(--eafit-line);
+    word-break:break-word;
+  }
+
+  /* Terminal block */
+  .term{
+    background:var(--term-bg);
+    border-radius:10px;
+    margin:16px 0;
+    overflow:hidden;
+    border:1px solid #15294a;
+  }
+  .term-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 12px;background:#0E2138;border-bottom:1px solid #15294a;
+  }
+  .term-dots{display:flex;gap:6px;}
+  .term-dots span{width:10px;height:10px;border-radius:50%;background:#2A436B;}
+  .copy-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.05em;
+    background:transparent;border:1px solid #2E527F;color:#9FC2EC;
+    padding:4px 12px;border-radius:6px;cursor:pointer;transition:all .15s ease;
+  }
+  .copy-btn:hover{background:#173558;color:#fff;}
+  .copy-btn:focus-visible{outline:2px solid #6FA8E6;outline-offset:2px;}
+  .copy-btn.done{color:#7BD88F;border-color:#2f6b41;}
+  .term pre{
+    margin:0;padding:16px 18px;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:.85rem;line-height:1.6;color:var(--term-text);
+  }
+  .term pre .pr{color:var(--term-prompt);user-select:none;}
+  .term.json pre{color:#CFE0F4;}
+  .term.json .k{color:#9FC2EC;}
+  .term.json .v{color:#C7E8B8;}
+
+  /* Table */
+  .table-card{border:1px solid var(--eafit-line);border-radius:16px;overflow:hidden;margin:20px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;}
+  thead th{
+    background:var(--eafit-tint);color:var(--eafit-deep);
+    text-align:left;padding:13px 16px;font-weight:600;
+    border-bottom:1px solid var(--eafit-line);
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid #EAF1F9;color:var(--ink-soft);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td:first-child{color:var(--ink);font-weight:500;}
+
+  /* Notes */
+  .notes{border-left:3px solid var(--eafit);padding:4px 0 4px 22px;margin:22px 0;}
+  .notes p{margin:10px 0;color:var(--ink-soft);}
+  .notes strong{color:var(--ink);}
+
+  footer{
+    border-top:1px solid var(--eafit-line);
+    padding:28px 0 60px;color:var(--ink-soft);font-size:.85rem;
+  }
+  footer .wrap{max-width:760px;}
+
+  a{color:var(--eafit);}
+  ::selection{background:var(--eafit-tint);}
+
+  @media (max-width:560px){
+    header{padding:44px 0 40px;}
+    .step{padding:22px 20px;}
+    .step-num{font-size:2.1rem;}
+    .step-head{gap:12px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important;}
+    html{scroll-behavior:auto;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="bridge">
+      <span class="node">Claude Desktop</span>
+      <span class="link"></span>
+      <span>MCP</span>
+      <span class="link"></span>
+      <span class="node">NotebookLM</span>
+    </div>
+    <h1>Conectar Claude Desktop con NotebookLM</h1>
+    <p>Guía paso a paso para Windows. Al terminar, podrás pedirle a Claude que liste tus notebooks, agregue fuentes, consulte tus documentos y genere resúmenes, podcasts o infografías — sin salir del chat.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="lead">Antes de empezar</div>
+    <div class="callout">
+      <strong>Léelo antes de instalar nada.</strong>
+      <ul>
+        <li><strong>No es una integración oficial de Google.</strong> Funciona sobre APIs internas no documentadas de NotebookLM, que pueden cambiar sin aviso. Estable para uso personal, no para flujos críticos.</li>
+        <li><strong>Autenticas con tu cuenta de Google.</strong> El servidor extrae las cookies de tu sesión. Usa una cuenta <em>personal</em>, no la institucional, por si Google modifica algo del lado de NotebookLM.</li>
+        <li><strong>Tiempo estimado:</strong> 15 a 20 minutos.</li>
+        <li><strong>Requisitos:</strong> Claude Desktop instalado (y abierto al menos una vez) y permiso para ejecutar comandos en PowerShell.</li>
+      </ul>
+    </div>
+
+    <div class="lead">Instalación</div>
+
+    <!-- Step 1 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">1</span>
+        <h2 class="step-title">Instalar <code class="inline">uv</code></h2>
+      </div>
+      <p><code class="inline">uv</code> es el gestor de paquetes de Python con el que corre el servidor. Abre <strong>PowerShell</strong> y ejecuta:</p>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</pre>
+      </div>
+      <p>Cierra y vuelve a abrir PowerShell para que <code class="inline">uv</code> quede disponible.</p>
+    </section>
+
+    <!-- Step 2 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">2</span>
+        <h2 class="step-title">Instalar el servidor</h2>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>uv tool install notebooklm-mcp-cli</pre>
+      </div>
+      <p>Esto instala dos herramientas: <code class="inline">nlm</code> (línea de comandos) y <code class="inline">notebooklm-mcp</code> (el servidor que usará Claude). Verifica con:</p>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>uv tool list</pre>
+      </div>
+      <p>Deberías ver <code class="inline">notebooklm-mcp-cli v0.7.x</code> con <code class="inline">nlm</code> y <code class="inline">notebooklm-mcp</code> debajo.</p>
+    </section>
+
+    <!-- Step 3 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">3</span>
+        <h2 class="step-title">Autenticarte con NotebookLM</h2>
+      </div>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>nlm login</pre>
+      </div>
+      <p>Se abrirá un navegador. Inicia sesión en tu cuenta de Google; las cookies se extraen automáticamente. Confirma con:</p>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>nlm login --check</pre>
+      </div>
+    </section>
+
+    <!-- Step 4 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">4</span>
+        <h2 class="step-title">Configurar Claude Desktop (manual)</h2>
+      </div>
+      <div class="callout" style="margin-top:14px;">
+        <strong>El comando automático no sirve para Claude Desktop.</strong> <code class="inline">nlm setup add claude-desktop</code> falla porque Claude Desktop no está en la lista de clientes soportados (solo Claude <em>Code</em>). La configuración se hace a mano — es sencilla.
+      </div>
+
+      <p class="body-ink"><strong>4.1.</strong> Averigua la ruta exacta del ejecutable:</p>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre><span class="pr">PS&gt; </span>where.exe notebooklm-mcp</pre>
+      </div>
+      <p>Copia la ruta que devuelve (algo como <code class="inline">C:\Users\TU_USUARIO\.local\bin\notebooklm-mcp.exe</code>).</p>
+
+      <p class="body-ink"><strong>4.2.</strong> Abre el archivo de configuración <em>desde dentro</em> de Claude Desktop: <strong>Configuración → Desarrollador → "Editar configuración"</strong>.</p>
+      <p>Hazlo siempre por este botón. Si tienes Claude Desktop de la <strong>Microsoft Store</strong>, el archivo real vive en una ruta virtualizada (<code class="inline">…\Packages\Claude_…\LocalCache\Roaming\Claude\</code>). Abrirlo a mano desde el explorador puede llevarte a una copia equivocada que Claude no lee — es el error más común.</p>
+
+      <p class="body-ink"><strong>4.3.</strong> Agrega el bloque <code class="inline">mcpServers</code>. El archivo completo debe ser <strong>un solo objeto JSON</strong>. Si ya tiene una sección <code class="inline">preferences</code>, agrega <code class="inline">mcpServers</code> como hermano, separado por una coma. El final del archivo debe quedar así:</p>
+      <div class="term json">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+<pre>  },
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"notebooklm-mcp"</span>: {
+      <span class="k">"command"</span>: <span class="v">"C:\\Users\\TU_USUARIO\\.local\\bin\\notebooklm-mcp.exe"</span>
+    }
+  }
+}</pre>
+      </div>
+      <p>Dos detalles que causan casi todas las fallas:</p>
+      <ul>
+        <li><strong>Barras dobles</strong> en la ruta (<code class="inline">\\</code>), no simples.</li>
+        <li><strong>Una sola llave <code class="inline">}</code> de cierre</strong> al final. No debe haber un <code class="inline">}</code> seguido de un <code class="inline">{</code> en medio: eso parte el archivo en dos objetos y Claude lo ignora por completo. En VS Code, no debe quedar nada subrayado en rojo.</li>
+      </ul>
+      <p>Guarda con <code class="inline">Ctrl+S</code>.</p>
+    </section>
+
+    <!-- Step 5 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">5</span>
+        <h2 class="step-title">Reiniciar Claude Desktop por completo</h2>
+      </div>
+      <p>Claude Desktop solo lee la configuración al <strong>arrancar desde cero</strong>. Cerrar la ventana no basta: sigue corriendo en segundo plano.</p>
+      <ul>
+        <li>Clic derecho en el ícono de Claude en la <strong>bandeja del sistema</strong> (junto al reloj; pulsa la flecha <code class="inline">^</code> si está oculto) → <strong>Salir / Quit</strong>.</li>
+        <li>Si tras reabrir sigue sin reconocerlo, abre el <strong>Administrador de tareas</strong> (<code class="inline">Ctrl+Shift+Esc</code>), busca procesos "Claude" y termínalos. En algunos equipos hay que <strong>reiniciar el computador</strong> para que se cierre del todo.</li>
+        <li>Vuelve a abrir Claude Desktop.</li>
+      </ul>
+    </section>
+
+    <!-- Step 6 -->
+    <section class="step">
+      <div class="step-head">
+        <span class="step-num">6</span>
+        <h2 class="step-title">Verificar</h2>
+      </div>
+      <p>En <strong>Configuración → Desarrollador</strong> debería aparecer <code class="inline">notebooklm-mcp</code> en la lista de servidores MCP locales, con su estado. Luego, en un chat nuevo, escribe:</p>
+      <div class="term">
+        <div class="term-bar"><span class="term-dots"><span></span><span></span><span></span></span><button class="copy-btn" type="button">Copiar</button></div>
+        <pre>Lista todos mis notebooks de NotebookLM.</pre>
+      </div>
+      <p>Si te los devuelve, la conexión está completa.</p>
+    </section>
+
+    <div class="lead">Solución de problemas</div>
+    <div class="table-card">
+      <table>
+        <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr></thead>
+        <tbody>
+          <tr><td><code class="inline">Unknown client 'claude-desktop'</code></td><td>El comando automático no soporta Claude Desktop</td><td>Usa la configuración manual del Paso 4</td></tr>
+          <tr><td>"No se han agregado servidores"</td><td>JSON inválido o editaste otra copia del archivo</td><td>Abre el archivo con "Editar configuración"; verifica que sea un solo objeto JSON</td></tr>
+          <tr><td>Aparece pero falla al consultar</td><td>Sesión de Google no autenticada</td><td>Corre <code class="inline">nlm login</code> y luego <code class="inline">nlm login --check</code></td></tr>
+          <tr><td>Dejó de funcionar tras unas semanas</td><td>Las cookies expiran (~2 a 4 semanas)</td><td>Vuelve a correr <code class="inline">nlm login</code></td></tr>
+          <tr><td>Errores varios</td><td>—</td><td>Ejecuta <code class="inline">nlm doctor</code> para un diagnóstico</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="lead">Notas de uso</div>
+    <div class="notes">
+      <p><strong>Cuota.</strong> El plan gratuito permite ~50 consultas al día.</p>
+      <p><strong>Contexto.</strong> El servidor expone 35 herramientas, que consumen bastante contexto. Conviene desactivarlo cuando no estés usando NotebookLM.</p>
+      <p><strong>Mantenimiento.</strong> Si vuelves a editar el JSON, no hace falta reiniciar el equipo: basta cerrar Claude desde la bandeja (o terminar el proceso en el Administrador de tareas) y reabrir.</p>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    Proyecto de referencia: <code class="inline">notebooklm-mcp-cli</code> (jacob-bd) en GitHub. Herramienta comunitaria, sin soporte oficial de Google ni de Anthropic.
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.term').querySelector('pre');
+      // texto sin el prompt "PS> "
+      var text = Array.from(pre.childNodes).map(function(n){
+        if(n.nodeType === 1 && n.classList.contains('pr')) return '';
+        return n.textContent;
+      }).join('');
+      text = text.replace(/^\s+|\s+$/g,'');
+      navigator.clipboard.writeText(text).then(function(){
+        var old = btn.textContent;
+        btn.textContent = 'Copiado';
+        btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1600);
+      }).catch(function(){
+        btn.textContent = 'Selecciona y copia';
+        setTimeout(function(){ btn.textContent = 'Copiar'; }, 1600);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
